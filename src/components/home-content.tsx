@@ -1,10 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
+import nbaschezFull from "../../public/nbaschez-full.jpg";
+
 export function HomeContent() {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   return (
     <div className="flex flex-col lg:flex-row lg:items-center gap-10 lg:gap-12 xl:gap-14">
       {/* Large portrait on the left */}
@@ -19,17 +24,23 @@ export function HomeContent() {
 
         <motion.div
           initial={{ opacity: 0, filter: "blur(14px)" }}
-          animate={{ opacity: 1, filter: "blur(0px)" }}
+          animate={
+            imageLoaded
+              ? { opacity: 1, filter: "blur(0px)" }
+              : { opacity: 0, filter: "blur(14px)" }
+          }
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           className="relative overflow-hidden rounded-[3px] border-t-2 border-white"
         >
           <Image
-            src="/nbaschez-full.jpg"
+            src={nbaschezFull}
             alt="Nathan Baschez"
             width={550}
             height={684}
             className="w-full h-auto object-cover"
             priority
+            placeholder="blur"
+            onLoad={() => setImageLoaded(true)}
           />
         </motion.div>
       </div>
@@ -37,10 +48,14 @@ export function HomeContent() {
       {/* Content on the right */}
       <motion.div
         initial={{ opacity: 0, filter: "blur(10px)" }}
-        animate={{ opacity: 1, filter: "blur(0px)" }}
+        animate={
+          imageLoaded
+            ? { opacity: 1, filter: "blur(0px)" }
+            : { opacity: 0, filter: "blur(10px)" }
+        }
         transition={{
           duration: 0.75,
-          delay: 0.45,
+          delay: imageLoaded ? 0.12 : 0,
           ease: [0.22, 1, 0.36, 1],
         }}
         className="flex-1 min-w-0 max-w-[38ch] lg:max-w-[42ch]"
@@ -50,8 +65,8 @@ export function HomeContent() {
         </h1>
 
         <p className="text-2xl font-semibold text-muted-foreground mt-4 mb-10">
-          I'm an entrepreneur and product designer living in LA. I also love
-          programming, writing, and strategy.
+          I'm an entrepreneur and interface designer living in California. I
+          enjoy programming, writing, and strategy, too.
         </p>
 
         <div className="flex items-center gap-6 text-base">
@@ -78,6 +93,12 @@ export function HomeContent() {
             className="opacity-50 hover:opacity-100 transition-opacity hover:underline"
           >
             About
+          </Link>
+          <Link
+            href="/writing"
+            className="opacity-50 hover:opacity-100 transition-opacity hover:underline"
+          >
+            Writing
           </Link>
           {/* <Link
             href="/work"
