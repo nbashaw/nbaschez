@@ -1,5 +1,7 @@
 "use client";
 
+// trivial commit to trigger Vercel rebuild
+
 import { HomeContent } from "@/components/home-content";
 
 export default function NathanBaschez() {
