@@ -1,31 +1,9 @@
-import Image from "next/image";
 import { Modal } from "@/components/modal";
 
 export default function LoreModal() {
   return (
-    <Modal title="Lore">
+    <Modal title="About">
       <div className="max-w-3xl mx-auto">
-        <div className="flex flex-col sm:flex-row gap-6 items-start mb-8">
-          <div className="flex-shrink-0">
-            <Image
-              src="/nbaschez.jpg"
-              alt="Nathan Baschez"
-              width={96}
-              height={96}
-              className="rounded object-cover"
-            />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Hi, I'm Nathan.
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              I'm an entrepreneur living in LA with my wife, our two kids, and
-              our dog, Porter.
-            </p>
-          </div>
-        </div>
-
         <div className="space-y-6 leading-relaxed text-foreground">
           <p>
             Some career highlights: Back in 2013, I designed and built the first

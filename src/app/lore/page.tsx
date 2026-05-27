@@ -1,34 +1,8 @@
-import Image from "next/image";
-
 export default function Lore() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-[1080px] px-6 pt-10 pb-24">
-        <div className="flex flex-col lg:flex-row gap-10 lg:gap-12 xl:gap-14">
-          {/* Large portrait on the left */}
-          <div className="w-full max-w-[550px] lg:w-[clamp(350px,40vw,550px)] lg:max-w-none lg:flex-shrink-0">
-            <Image
-              src="/nbaschez-full.jpg"
-              alt="Nathan Baschez"
-              width={550}
-              height={684}
-              className="w-full h-auto object-cover"
-              priority
-            />
-          </div>
-
-          {/* Text content on the right */}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Hi, I'm Nathan.
-            </h1>
-            <p className="text-[15px] leading-snug text-muted-foreground mt-2 mb-8">
-              I'm an entrepreneur living in LA with my wife, our two kids, and
-              our dog, Porter.
-            </p>
-
-            {/* Bio content */}
-            <div className="space-y-5 text-[15px] leading-relaxed text-foreground">
+      <div className="mx-auto max-w-3xl px-6 pt-10 pb-24">
+        <div className="space-y-5 text-[15px] leading-relaxed text-foreground">
               <p>
                 Some career highlights: Back in 2013, I designed and built the
                 first version of Product Hunt.{" "}
@@ -170,7 +144,5 @@ export default function Lore() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
   );
 }

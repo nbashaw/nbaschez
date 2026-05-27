@@ -43,7 +43,7 @@ export function HomeContent() {
           delay: 0.45,
           ease: [0.22, 1, 0.36, 1],
         }}
-        className="flex-1 min-w-0"
+        className="flex-1 min-w-0 max-w-[38ch] lg:max-w-[42ch]"
       >
         <h1 className="text-3xl font-semibold tracking-tight">
           Hi, I'm Nathan.
@@ -77,9 +77,9 @@ export function HomeContent() {
             href="/lore"
             className="opacity-50 hover:opacity-100 transition-opacity hover:underline"
           >
-            Lore
+            About
           </Link>
-          <Link
+          {/* <Link
             href="/work"
             className="opacity-50 hover:opacity-100 transition-opacity hover:underline"
           >
@@ -96,7 +96,7 @@ export function HomeContent() {
             className="opacity-50 hover:opacity-100 transition-opacity hover:underline"
           >
             Books
-          </Link>
+          </Link> */}
         </div>
       </motion.div>
     </div>
