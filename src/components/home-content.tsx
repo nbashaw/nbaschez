@@ -61,13 +61,12 @@ export function HomeContent() {
         className="flex-1 min-w-0 max-w-[38ch] lg:max-w-[42ch]"
       >
         <h1 className="text-3xl font-semibold tracking-tight">
-          Hi, I'm Nathan.
+          Hi, I&rsquo;m Nathan.
         </h1>
 
-        <p className="text-2xl font-semibold text-muted-foreground mt-4 mb-10">
-          I'm an entrepreneur and interface designer living in California. I
-          enjoy programming, writing, and strategy, too.
-        </p>
+        <h2 className="text-2xl font-semibold text-muted-foreground mt-4 mb-10">
+          I design and engineer AI products.
+        </h2>
 
         <div className="flex items-center gap-6 text-base">
           <a
