@@ -61,72 +61,64 @@ export function Portrait({ onLoad }: PortraitProps) {
   const fgParallaxX = useTransform(rotateYSpring, [-7, 7], [4.5, -4.5]);
   const fgParallaxY = useTransform(rotateXSpring, [-7, 7], [-2.8, 2.8]);
 
+  // Photo / background layer (bg image + holographic guilloche + Topps stamp).
+  // Applies light parallax vs the outer card frame (white padding + blue border).
+  // Creates subtle depth between the printed photo area and the physical card "stock".
+  // IMPORTANT: the hologram canvas lives inside this layer's motion wrapper so the
+  // guilloche pattern translates/rotates in lockstep with the bg photo — they read as one.
+  const photoRotateX = useTransform(rotateXSpring, (v) => v * 0.88);
+  const photoRotateY = useTransform(rotateYSpring, (v) => v * 0.88);
+  const photoParallaxX = useTransform(rotateYSpring, [-7, 7], [2.1, -2.1]);
+  const photoParallaxY = useTransform(rotateXSpring, [-7, 7], [-1.2, 1.2]);
+  const photoScale = 1.018; // tiny bleed so light parallax translate never reveals gaps under blue frame
+
   // Overall sheen / glare on top — follows the card tilt for a specular highlight effect
   const glareX = useTransform(rotateYSpring, [-7, 7], [74, 26]);
   const glareY = useTransform(rotateXSpring, [-7, 7], [62, 22]);
   const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 36%, transparent 70%)`;
   const glareOpacity = useSpring(0.38, { stiffness: 140, damping: 22 });
 
-  // Holographic uniform triangle field canvas
+  // Holographic guilloche canvas
   const holoCanvasRef = useRef<HTMLCanvasElement>(null);
   const tiltRef = useRef({ tx: 0, ty: 0 });
   const canvasReadyRef = useRef(false);
 
-  // Uniform holographic triangle field — dense geometric pattern like premium foil trading cards
-  // Alternating up/down equilateral triangles in offset rows for proper tessellation
-  const triangles = useMemo(() => {
-    const arr: Array<{
-      x: number; y: number; size: number; rot: number;
-      hue: number; depth: number; baseAlpha: number; phase: number;
-    }> = [];
+  // Guilloche (ellipse rosette) configuration — tuned for nice coverage and smoothness
+  const guillocheLayers = [
+    {
+      angle: 12,
+      frequency: 19,
+      amplitude: 3.1,
+      count: 46,
+      hueOffset: 195,
+      phaseOffset: 0,
+      lineWidth: 0.65,
+      brightnessMul: 1.0,
+    },
+    {
+      angle: -47,
+      frequency: 26,
+      amplitude: 2.4,
+      count: 39,
+      hueOffset: 265,
+      phaseOffset: 2.1,
+      lineWidth: 0.55,
+      brightnessMul: 0.95,
+    },
+    {
+      angle: 68,
+      frequency: 15,
+      amplitude: 2.8,
+      count: 34,
+      hueOffset: 145,
+      phaseOffset: 4.3,
+      lineWidth: 0.6,
+      brightnessMul: 1.05,
+    },
+  ] as const;
 
-    const TRI_SIZE = 5.1;                  // base size in percent-of-card units (visible facets)
-    const ROW_H = TRI_SIZE * 0.91;         // vertical row spacing — leaves a little breathing room
-    const COL_W = TRI_SIZE * 1.03;
-
-    // Over-generate slightly for full coverage inside the rounded blue frame
-    const ROWS = Math.ceil(102 / ROW_H) + 1;
-    const COLS = Math.ceil(102 / COL_W) + 2;
-
-    let idx = 0;
-    for (let r = -1; r < ROWS; r++) {
-      const y = -3 + r * ROW_H;
-      const rowOffset = (r % 2) * (COL_W * 0.5);
-      const isEvenRow = r % 2 === 0;
-
-      for (let c = -2; c < COLS; c++) {
-        const x = -5 + c * COL_W + rowOffset;
-
-        // Tiny deterministic jitter so it doesn't feel robotic while staying very uniform
-        const j = ((idx * 41) % 9) / 36 - 0.11;
-        const size = TRI_SIZE * (0.975 + j * 0.05);
-
-        // Controlled hue flow across the grid (cyan → teal → warm amber, similar to the ref)
-        const hue = (192 + (((r * 13 + c * 9) % 168 + 168) % 168)) % 360;
-
-        // Very subtle surface undulation instead of strong layered parallax
-        const depth = Math.sin(r * 0.71 + c * 1.19) * 0.48;
-
-        const baseAlpha = 0.215 + ((idx % 5) * 0.012);
-
-        // Stable per-triangle phase for traveling sparkles as you tilt
-        const phase = (r * 0.91 + c * 1.53) * 0.85;
-
-        arr.push({
-          x: x + j * 0.4,
-          y: y + j * 0.28,
-          size,
-          rot: (isEvenRow ? 0 : 180) + ((idx % 7) - 3) * 1.4, // mostly aligned, tiny rotation variety
-          hue,
-          depth,
-          baseAlpha,
-          phase,
-        });
-        idx++;
-      }
-    }
-    return arr;
-  }, []);
+  // Controls how smooth the ellipse curves are (higher = smoother, slightly more expensive)
+  const curveResolution = 150;
 
   function drawHolo(
     ctx: CanvasRenderingContext2D,
@@ -142,46 +134,65 @@ export function Portrait({ onLoad }: PortraitProps) {
     const globalPhase = (mx * 95 + my * 71) % 360;
     const tiltMag = Math.hypot(tx, ty);
 
-    for (const tri of triangles) {
-      // Very light parallax so the geometric pattern feels printed on the surface
-      // rather than individual floating pieces (strong parallax fights the uniform look)
-      const px = (tri.x / 100) * logicalW + ty * tri.depth * 0.36;
-      const py = (tri.y / 100) * logicalH - tx * tri.depth * 0.29;
+    // Global opacity for the whole holographic guilloche layer
+    const HOLO_OPACITY = 0.5;
 
-      // Angle-dependent sparkle — tuned for traveling highlight bands across the grid.
-      const sparkle =
-        Math.max(
-          0.38,
-          Math.sin((tx * 1.55 + ty * 1.38 + tri.phase) * 0.061) * 0.32 + 0.68
-        ) * (0.88 + tiltMag * 0.32);
+    // Rotated ellipse rosettes — classic smooth guilloche style.
+    // Many slightly rotated ellipses create rich moiré patterns with very organic curves.
+    const cx = logicalW / 2;
+    const cy = logicalH / 2;
 
-      const alpha = tri.baseAlpha * sparkle * (0.96 + tiltMag * 0.18);
+    // Three ellipse groups (repurposing the 3 layers)
+    // Scaled to cover the full background area
+    const maxDim = Math.min(logicalW, logicalH);
 
-      ctx.save();
-      ctx.translate(px, py);
-      ctx.rotate(((tri.rot + ty * 0.18) * Math.PI) / 180);
+    const ellipseGroups = [
+      { baseRx: maxDim * 0.42, baseRy: maxDim * 0.16, countMul: 2.8, layer: guillocheLayers[0] },
+      { baseRx: maxDim * 0.62, baseRy: maxDim * 0.23, countMul: 2.4, layer: guillocheLayers[1] },
+      { baseRx: maxDim * 0.90, baseRy: maxDim * 0.33, countMul: 2.1, layer: guillocheLayers[2] },
+    ];
 
-      const s = tri.size;
-      ctx.beginPath();
-      ctx.moveTo(0, -s * 0.58);
-      ctx.lineTo(-s * 0.52, s * 0.48);
-      ctx.lineTo(s * 0.52, s * 0.48);
-      ctx.closePath();
+    for (const group of ellipseGroups) {
+      const L = group.layer;
 
-      // Iridescent color that shifts with tilt + global mouse phase
-      const hue = (tri.hue + globalPhase * 0.6 + (tx + ty) * 11) % 360;
-      ctx.fillStyle = `hsla(${hue}, 82%, 82%, ${alpha})`;
-      ctx.fill();
+      const num = Math.max(24, Math.floor(L.frequency * group.countMul));
+      const step = 360 / num;
 
-      // Bright holographic rim — appears on triangles currently catching the light
-      if (sparkle > 0.47) {
-        ctx.strokeStyle = `hsla(${(hue + 22) % 360}, 78%, 96%, ${alpha * 1.04})`;
-        ctx.lineWidth = Math.max(0.65, s * 0.082);
+      const rx = group.baseRx + L.amplitude * (group.baseRx * 0.04);
+      const ry = group.baseRy + L.amplitude * (group.baseRy * 0.04);
+
+      ctx.lineWidth = Math.max(0.4, L.lineWidth * 1.3);
+      ctx.lineCap = "round";
+
+      for (let i = 0; i < num; i++) {
+        const rot = L.angle + i * step;
+
+        // Tilt-reactive brightness — ellipses "catch" light when their long axis aligns with tilt
+        const ellipseAngle = rot;
+        const alignment = Math.abs(Math.cos((ellipseAngle - Math.atan2(ty, tx) * 180 / Math.PI) * Math.PI / 180));
+        const bright = (0.65 + alignment * 0.7 + tiltMag * 0.5) * L.brightnessMul;
+        const alpha = Math.min(0.9, 0.13 + bright * 0.22) * HOLO_OPACITY;
+
+        const hue = (L.hueOffset + globalPhase * 0.35 + i * 2.2) % 360;
+        ctx.strokeStyle = `hsla(${hue}, 78%, 86%, ${alpha})`;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rot * Math.PI / 180);
+
+        ctx.beginPath();
+        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.restore();
       }
-
-      ctx.restore();
     }
+  }
+
+  function getPhotoRect(parent: HTMLElement) {
+    // offsetWidth/Height give the stable layout box size, ignoring CSS transforms
+    // (our photo layer scale/rotate + ancestor tilt). This keeps the guilloche
+    // pattern geometry perfectly registered to the bg image at all times.
+    return { width: parent.offsetWidth, height: parent.offsetHeight };
   }
 
   function resizeAndDrawHolo() {
@@ -191,7 +202,7 @@ export function Portrait({ onLoad }: PortraitProps) {
     const parent = canvas.parentElement;
     if (!parent) return;
 
-    const rect = parent.getBoundingClientRect();
+    const rect = getPhotoRect(parent);
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     canvas.width = Math.round(rect.width * dpr);
@@ -223,7 +234,7 @@ export function Portrait({ onLoad }: PortraitProps) {
         if (ctx) {
           const parent = canvas.parentElement;
           if (parent) {
-            const r = parent.getBoundingClientRect();
+            const r = getPhotoRect(parent);
             drawHolo(ctx, r.width, r.height, v, tiltRef.current.ty, mouseX.get(), mouseY.get());
           }
         }
@@ -240,7 +251,7 @@ export function Portrait({ onLoad }: PortraitProps) {
         if (ctx) {
           const parent = canvas.parentElement;
           if (parent) {
-            const r = parent.getBoundingClientRect();
+            const r = getPhotoRect(parent);
             drawHolo(ctx, r.width, r.height, tiltRef.current.tx, v, mouseX.get(), mouseY.get());
           }
         }
@@ -256,7 +267,7 @@ export function Portrait({ onLoad }: PortraitProps) {
         if (ctx) {
           const parent = canvas.parentElement;
           if (parent) {
-            const r = parent.getBoundingClientRect();
+            const r = getPhotoRect(parent);
             drawHolo(ctx, r.width, r.height, tiltRef.current.tx, tiltRef.current.ty, mouseX.get(), mouseY.get());
           }
         }
@@ -283,14 +294,14 @@ export function Portrait({ onLoad }: PortraitProps) {
       setTimeout(() => resizeAndDrawHolo(), 120);
     });
 
-    // For reduced motion, paint a very faint static geometric triangle field once
+    // For reduced motion, paint a very faint static guilloche field once
     if (prefersReducedMotion) {
       setTimeout(() => {
         const canvas = holoCanvasRef.current;
         if (!canvas) return;
         const parent = canvas.parentElement;
         if (!parent) return;
-        const rect = parent.getBoundingClientRect();
+        const rect = getPhotoRect(parent);
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         canvas.width = Math.round(rect.width * dpr);
         canvas.height = Math.round(rect.height * dpr);
@@ -299,23 +310,17 @@ export function Portrait({ onLoad }: PortraitProps) {
         const ctx = canvas.getContext("2d", { alpha: true });
         if (ctx) {
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          // Very subtle static geometric field (no animation)
+          // Very subtle static guilloche field (no animation)
           ctx.clearRect(0, 0, rect.width, rect.height);
-          for (const tri of triangles) {
-            const px = (tri.x / 100) * rect.width;
-            const py = (tri.y / 100) * rect.height;
-            ctx.save();
-            ctx.translate(px, py);
-            ctx.rotate((tri.rot * Math.PI) / 180);
-            const s = tri.size * 0.9;
+          ctx.strokeStyle = "rgba(180, 200, 220, 0.09)";
+          ctx.lineWidth = 0.6;
+          // Simple static fine lines as placeholder
+          for (let i = 0; i < 38; i++) {
+            const y = (i / 37) * rect.height;
             ctx.beginPath();
-            ctx.moveTo(0, -s * 0.58);
-            ctx.lineTo(-s * 0.52, s * 0.48);
-            ctx.lineTo(s * 0.52, s * 0.48);
-            ctx.closePath();
-            ctx.fillStyle = `hsla(${tri.hue}, 70%, 85%, 0.13)`;
-            ctx.fill();
-            ctx.restore();
+            ctx.moveTo(0, y);
+            ctx.lineTo(rect.width, y);
+            ctx.stroke();
           }
         }
       }, 180);
@@ -421,6 +426,25 @@ export function Portrait({ onLoad }: PortraitProps) {
             className="relative overflow-hidden border-[12px] border-[#1E90FF]
                        rounded-tl-[56px] rounded-br-[56px] rounded-tr-[1px] rounded-bl-[1px]"
           >
+            {/* Photo layer (bg image + Topps logo stamp + holographic guilloche).
+                Light parallax + tiny scale bleed vs the blue frame / outer white card.
+                This gives the subtle "printed photo plate" depth the user requested.
+                The guilloche canvas is inside this wrapper → moves as one with the bg photo. */}
+            <motion.div
+              style={{
+                ...(prefersReducedMotion
+                  ? {}
+                  : {
+                      rotateX: photoRotateX,
+                      rotateY: photoRotateY,
+                      x: photoParallaxX,
+                      y: photoParallaxY,
+                      scale: photoScale,
+                    }),
+                transformStyle: "preserve-3d",
+              }}
+              className="relative"
+            >
             <Image
               src={nbaschezBg}
               alt="Nathan Baschez"
@@ -446,19 +470,21 @@ export function Portrait({ onLoad }: PortraitProps) {
               </g>
             </svg>
 
-            {/* Holographic triangle field — dense uniform geometric pattern (like premium foil cards).
-                Canvas for crisp per-frame control over tilt-responsive iridescence and sparkles. */}
+            {/* Holographic guilloche field — rotated ellipse rosettes for smooth, rich moiré patterns.
+                Canvas for crisp per-frame control over the pattern. Lives inside the photo layer
+                wrapper so it is locked to the bg image (they appear as a single printed layer). */}
             <canvas
               ref={holoCanvasRef}
               className="absolute inset-0 z-[6] pointer-events-none
                          rounded-tl-[56px] rounded-br-[56px] rounded-tr-[1px] rounded-bl-[1px]"
               aria-hidden="true"
             />
+            </motion.div>
 
             {/* Foreground subject cutout (transparent PNG).
-                Positioned above the hologram. Slightly oversized + reduced tilt + stronger parallax.
-                This is the correct behavior for something physically closer to the viewer on the Z axis:
-                it moves more in screen space but rotates less extremely than the background/holo plane. */}
+                Positioned above the photo layer (bg + holo). Slightly oversized + reduced tilt + stronger parallax.
+                This + the photo layer's own light differential vs frame gives layered parallax:
+                frame (white+blue) → photo bg/holo → fg subject. */}
             <motion.img
               src="/nbaschez-full-fg.png"
               alt=""
