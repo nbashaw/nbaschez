@@ -57,7 +57,7 @@ export function HomeContent() {
             <LinkedinIcon className="w-3.5 h-3.5" />
           </a>
           <Link
-            href="/lore"
+            href="/about"
             className="opacity-50 hover:opacity-100 transition-opacity hover:underline"
           >
             About
