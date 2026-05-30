@@ -12,7 +12,8 @@ import {
 } from "framer-motion";
 import Image from "next/image";
 
-import nbaschezFull from "../../public/nbaschez-full.jpg";
+import nbaschezBg from "../../public/nbaschez-full-bg.jpg";
+import nbaschezFg from "../../public/nbaschez-full-fg.png";
 
 interface PortraitProps {
   onLoad?: () => void;
@@ -51,13 +52,20 @@ export function Portrait({ onLoad }: PortraitProps) {
     mass: 0.5,
   });
 
-  // Sheen / glare that tracks the cursor at all times
-  const glareX = useTransform(mouseX, [-0.5, 0.5], [26, 74]);
-  const glareY = useTransform(mouseY, [-0.5, 0.5], [22, 62]);
-  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 36%, transparent 70%)`;
+  // Foreground subject transforms — modeled as closer on the Z axis.
+  // Closer objects should:
+  //   - Rotate less extremely than the main card (feels like it's on its own floating plane)
+  //   - Have stronger 2D parallax movement during tilt
+  const fgRotateX = useTransform(rotateXSpring, (v) => v * 0.38);
+  const fgRotateY = useTransform(rotateYSpring, (v) => v * 0.38);
+  const fgParallaxX = useTransform(rotateYSpring, [-7, 7], [4.5, -4.5]);
+  const fgParallaxY = useTransform(rotateXSpring, [-7, 7], [-2.8, 2.8]);
 
-  // Glare intensity — always present, stronger when cursor is closer or hovering
-  const glareOpacity = useSpring(0.36, { stiffness: 140, damping: 22 });
+  // Overall sheen / glare on top — follows the card tilt for a specular highlight effect
+  const glareX = useTransform(rotateYSpring, [-7, 7], [74, 26]);
+  const glareY = useTransform(rotateXSpring, [-7, 7], [62, 22]);
+  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 36%, transparent 70%)`;
+  const glareOpacity = useSpring(0.38, { stiffness: 140, damping: 22 });
 
   // Holographic uniform triangle field canvas
   const holoCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -141,7 +149,6 @@ export function Portrait({ onLoad }: PortraitProps) {
       const py = (tri.y / 100) * logicalH - tx * tri.depth * 0.29;
 
       // Angle-dependent sparkle — tuned for traveling highlight bands across the grid.
-      // Higher floor so the geometric pattern stays visible everywhere, not just where the wash is.
       const sparkle =
         Math.max(
           0.38,
@@ -175,24 +182,6 @@ export function Portrait({ onLoad }: PortraitProps) {
 
       ctx.restore();
     }
-
-    // Soft holographic bloom / wash that moves with tilt and cursor.
-    // Stronger and wider so it helps reveal the geometric pattern across more of the card.
-    const washX = (mx * 0.62 + 0.5) * logicalW;
-    const washY = (my * 0.62 + 0.5) * logicalH;
-    const washGrad = ctx.createRadialGradient(
-      washX - tx * 7,
-      washY - ty * 5,
-      4,
-      washX + tx * 12,
-      washY + ty * 9,
-      105
-    );
-    washGrad.addColorStop(0, `hsla(${(195 + globalPhase * 0.45) % 360}, 78%, 79%, ${0.18 + tiltMag * 0.06})`);
-    washGrad.addColorStop(0.38, `hsla(${(278 + globalPhase * 0.35) % 360}, 74%, 82%, ${0.12 + tiltMag * 0.042})`);
-    washGrad.addColorStop(1, "transparent");
-    ctx.fillStyle = washGrad;
-    ctx.fillRect(0, 0, logicalW, logicalH);
   }
 
   function resizeAndDrawHolo() {
@@ -268,15 +257,7 @@ export function Portrait({ onLoad }: PortraitProps) {
           const parent = canvas.parentElement;
           if (parent) {
             const r = parent.getBoundingClientRect();
-            drawHolo(
-              ctx,
-              r.width,
-              r.height,
-              tiltRef.current.tx,
-              tiltRef.current.ty,
-              mouseX.get(),
-              mouseY.get()
-            );
+            drawHolo(ctx, r.width, r.height, tiltRef.current.tx, tiltRef.current.ty, mouseX.get(), mouseY.get());
           }
         }
       }
@@ -367,28 +348,25 @@ export function Portrait({ onLoad }: PortraitProps) {
     mouseX.set(Math.max(Math.min(nx, 0.5), -0.5));
     mouseY.set(Math.max(Math.min(ny, 0.5), -0.5));
 
-    // Distance-based sheen intensity (0 at center, higher farther out within our clamp)
-    const dist = Math.hypot(nx, ny);
-    // Base ambient sheen + a bit more presence when the cursor is offset
-    const targetOpacity = 0.32 + Math.min(dist, 0.55) * 0.42; // ~0.32 → ~0.55 range
-    glareOpacity.set(targetOpacity);
+    // Base sheen level (position is driven by tilt, not mouse distance)
+    glareOpacity.set(0.38);
   }
 
   function handleMouseEnter() {
     if (!loaded || prefersReducedMotion) return;
     setIsHovering(true);
     scale.set(1.008);
-    // Boost the sheen when the cursor is directly on the card
+    // Strong boost on direct hover
     glareOpacity.set(0.92);
   }
 
   function handleMouseLeave() {
     setIsHovering(false);
     // Note: we do NOT reset mouseX/mouseY here anymore.
-    // The global listener will continue updating tilt + sheen from wherever the cursor is.
+    // The global listener will continue updating tilt from wherever the cursor is.
     scale.set(1);
-    // Drop back to a pleasant ambient sheen level (will be corrected by next global move)
-    glareOpacity.set(0.42);
+    // Return to base level
+    glareOpacity.set(0.38);
   }
 
   // Global mouse tracking — the card follows the cursor anywhere on screen
@@ -444,7 +422,7 @@ export function Portrait({ onLoad }: PortraitProps) {
                        rounded-tl-[56px] rounded-br-[56px] rounded-tr-[1px] rounded-bl-[1px]"
           >
             <Image
-              src={nbaschezFull}
+              src={nbaschezBg}
               alt="Nathan Baschez"
               width={550}
               height={646}
@@ -477,8 +455,29 @@ export function Portrait({ onLoad }: PortraitProps) {
               aria-hidden="true"
             />
 
-            {/* Sheen / glare layer — visible at all times, follows the cursor globally.
-                Sits above the holographic field so the white glare interacts with the iridescent colors. */}
+            {/* Foreground subject cutout (transparent PNG).
+                Positioned above the hologram. Slightly oversized + reduced tilt + stronger parallax.
+                This is the correct behavior for something physically closer to the viewer on the Z axis:
+                it moves more in screen space but rotates less extremely than the background/holo plane. */}
+            <motion.img
+              src="/nbaschez-full-fg.png"
+              alt=""
+              className="absolute inset-0 z-[8] pointer-events-none select-none
+                         rounded-tl-[56px] rounded-br-[56px] rounded-tr-[1px] rounded-bl-[1px]"
+              style={{
+                objectFit: 'cover',
+                objectPosition: '10% 50%',
+                scale: prefersReducedMotion ? 1 : 1.06,
+                rotateX: prefersReducedMotion ? 0 : fgRotateX,
+                rotateY: prefersReducedMotion ? 0 : fgRotateY,
+                x: prefersReducedMotion ? 0 : fgParallaxX,
+                y: prefersReducedMotion ? 0 : fgParallaxY,
+              }}
+              draggable={false}
+            />
+
+            {/* Overall sheen / glare on top — white moving highlight that follows card tilt.
+                Sits above the triangles and foreground cutout for a nice specular foil effect. */}
             <motion.div
               className="absolute inset-0 pointer-events-none z-10
                          rounded-tl-[56px] rounded-br-[56px] rounded-tr-[1px] rounded-bl-[1px]"
