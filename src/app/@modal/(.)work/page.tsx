@@ -18,11 +18,6 @@ export default function WorkModal() {
 
       <Modal title="Work" onClose={() => router.push("/")} contentMaxWidth="max-w-3xl">
         <div className="max-w-3xl mx-auto">
-          <p className="text-muted-foreground mb-10 text-lg">
-            Selected projects and companies I’ve built or helped build, in
-            reverse chronological order.
-          </p>
-
           <ProjectsList />
         </div>
       </Modal>

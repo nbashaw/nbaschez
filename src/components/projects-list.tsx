@@ -78,18 +78,18 @@ export function ProjectsList({ className }: ProjectsListProps) {
     <div className={className}>
       <div className="space-y-12">
         {projects.map((project) => (
-          <div key={project.id} className="group flex flex-col sm:flex-row gap-5 sm:gap-7">
+          <div key={project.id} className="group flex flex-col sm:flex-row gap-6 sm:gap-8">
             {/* Visual / Image slot */}
-            <div className="relative w-full sm:w-40 md:w-44 flex-shrink-0 overflow-hidden rounded-[4px] border border-border/60 bg-muted/40 h-28 sm:h-24 md:h-[102px] transition-all group-hover:border-border/80 group-hover:bg-muted/60">
+            <div className="relative w-full sm:w-64 md:w-72 lg:w-80 flex-shrink-0 overflow-hidden rounded-[4px] border border-border/60 bg-muted/40 h-40 sm:h-36 md:h-40 lg:h-[170px] transition-all group-hover:border-border/80 group-hover:bg-muted/60">
               {/* Left accent bar */}
               <div className="absolute left-0 top-0 bottom-0 w-px bg-foreground/10" />
 
-              <div className="absolute inset-0 flex items-center justify-center px-5">
+              <div className="absolute inset-0 flex items-center justify-center px-6">
                 <div className="text-center">
-                  <div className="font-mono text-[9px] tracking-[3px] text-muted-foreground/40 mb-1">
+                  <div className="font-mono text-[10px] tracking-[3px] text-muted-foreground/40 mb-1.5">
                     {project.year}
                   </div>
-                  <div className="font-semibold text-[13px] tracking-[-0.1px] text-foreground/75 leading-none">
+                  <div className="font-semibold text-sm md:text-base tracking-[-0.1px] text-foreground/75 leading-none">
                     {project.title.toUpperCase()}
                   </div>
                 </div>
@@ -118,10 +118,6 @@ export function ProjectsList({ className }: ProjectsListProps) {
           </div>
         ))}
       </div>
-
-      <p className="pt-12 text-sm text-muted-foreground">
-        More projects and details coming soon.
-      </p>
     </div>
   );
 }

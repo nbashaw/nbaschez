@@ -158,8 +158,9 @@ export function Portrait({ onLoad }: PortraitProps) {
               src={nbaschezFull}
               alt="Nathan Baschez"
               width={550}
-              height={684}
-              className="w-full h-auto object-cover"
+              height={646}
+              className="w-full h-auto object-cover select-none"
+              style={{ objectPosition: '10% 50%' }}
               priority
               placeholder="blur"
               onLoad={handleLoad}
