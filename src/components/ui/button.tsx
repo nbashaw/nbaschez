@@ -56,3 +56,41 @@ function Button({
 }
 
 export { Button, buttonVariants };
+
+function ButtonGroup({
+  className,
+  role = "group",
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="button-group"
+      role={role}
+      className={cn(
+        "group/button-group inline-flex w-fit items-stretch *:focus-visible:relative *:focus-visible:z-10 has-[>[data-slot=button-group]]:gap-2 [&>*:not(:first-child)]:rounded-l-none [&>*:not(:first-child)]:border-l-0 [&>*:not(:last-child)]:rounded-r-none [&>[data-slot]:not(:has(~[data-slot]))]:rounded-r-lg!",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export { ButtonGroup };
+
+function ButtonGroupSeparator({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="button-group-separator"
+      aria-hidden="true"
+      className={cn("bg-border mx-0.5 w-px shrink-0 self-stretch", className)}
+      {...props}
+    />
+  );
+}
+
+ButtonGroup.Separator = ButtonGroupSeparator;
+
+export { ButtonGroupSeparator };
