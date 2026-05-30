@@ -11,87 +11,86 @@ export function HomeContent() {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
-    <>
-      <SettingsMenu />
-      <div className="flex flex-col lg:flex-row lg:items-center gap-10 lg:gap-12 xl:gap-14">
-        {/* Large portrait on the left */}
-        <Portrait onLoad={() => setImageLoaded(true)} />
+    <div className="flex flex-col lg:flex-row lg:items-center gap-10 lg:gap-12 xl:gap-14">
+      {/* Large portrait on the left */}
+      <Portrait onLoad={() => setImageLoaded(true)} />
 
-        {/* Content on the right */}
-        <motion.div
-          initial={{ opacity: 0, filter: "blur(10px)" }}
-          animate={
-            imageLoaded
-              ? { opacity: 1, filter: "blur(0px)" }
-              : { opacity: 0, filter: "blur(10px)" }
-          }
-          transition={{
-            duration: 0.75,
-            delay: imageLoaded ? 0.12 : 0,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          className="flex-1 min-w-0 max-w-[38ch] lg:max-w-[42ch]"
-        >
-          <h1 className="text-[2.85rem] font-semibold tracking-tight">
-            Hi, I’m Nathan
-          </h1>
+      {/* Content on the right */}
+      <motion.div
+        initial={{ opacity: 0, filter: "blur(10px)" }}
+        animate={
+          imageLoaded
+            ? { opacity: 1, filter: "blur(0px)" }
+            : { opacity: 0, filter: "blur(10px)" }
+        }
+        transition={{
+          duration: 0.75,
+          delay: imageLoaded ? 0.12 : 0,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="flex-1 min-w-0 max-w-[38ch] lg:max-w-[42ch]"
+      >
+        <h1 className="text-[2.85rem] font-semibold tracking-tight">
+          Hi, I’m Nathan
+        </h1>
 
-          <h2 className="text-3xl font-semibold text-muted-foreground/70 mt-2 mb-10">
-            I’m a founder, designer, and engineer building in AI
-          </h2>
+        <h2 className="text-3xl font-semibold text-muted-foreground/70 mt-2 mb-10">
+          I’m a founder, designer, and engineer building in AI
+        </h2>
 
-          <ButtonGroup>
-            <Button
-              variant="outline"
-              size="icon-lg"
-              aria-label="X"
-              render={(props) => (
-                <a
-                  href="https://x.com/nbaschez"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  {...props}
-                >
-                  <XIcon className="h-4 w-4" />
-                </a>
-              )}
-              nativeButton={false}
-              className="bg-background/30 backdrop-blur-sm hover:bg-muted/60"
-            />
-            <Button
-              variant="outline"
-              size="lg"
-              render={(props) => (
-                <Link href="/about" {...props}>
-                  About
-                </Link>
-              )}
-              nativeButton={false}
-              className="bg-background/30 px-4 text-sm backdrop-blur-sm hover:bg-muted/60"
-            />
-            <Button
-              variant="outline"
-              size="lg"
-              render={(props) => (
-                <Link href="/writing" {...props}>
-                  Writing
-                </Link>
-              )}
-              nativeButton={false}
-              className="bg-background/30 px-4 text-sm backdrop-blur-sm hover:bg-muted/60"
-            />
-            <Button
-              variant="outline"
-              size="lg"
-              render={(props) => (
-                <Link href="/work" {...props}>
-                  Work
-                </Link>
-              )}
-              nativeButton={false}
-              className="bg-background/30 px-4 text-sm backdrop-blur-sm hover:bg-muted/60"
-            />
-            {/* <Button
+        <ButtonGroup>
+          <Button
+            variant="outline"
+            size="icon-lg"
+            aria-label="X"
+            render={(props) => (
+              <a
+                href="https://x.com/nbaschez"
+                target="_blank"
+                rel="noopener noreferrer"
+                {...props}
+              >
+                <XIcon className="h-4 w-4" />
+              </a>
+            )}
+            nativeButton={false}
+            className="w-11 bg-background/30 backdrop-blur-sm hover:bg-muted/60"
+          />
+          <Button
+            variant="outline"
+            size="lg"
+            render={(props) => (
+              <Link href="/about" {...props}>
+                About
+              </Link>
+            )}
+            nativeButton={false}
+            className="bg-background/30 px-4 text-sm backdrop-blur-sm hover:bg-muted/60"
+          />
+          <Button
+            variant="outline"
+            size="lg"
+            render={(props) => (
+              <Link href="/writing" {...props}>
+                Writing
+              </Link>
+            )}
+            nativeButton={false}
+            className="bg-background/30 px-4 text-sm backdrop-blur-sm hover:bg-muted/60"
+          />
+          <Button
+            variant="outline"
+            size="lg"
+            render={(props) => (
+              <Link href="/work" {...props}>
+                Work
+              </Link>
+            )}
+            nativeButton={false}
+            className="bg-background/30 px-4 text-sm backdrop-blur-sm hover:bg-muted/60"
+          />
+          <SettingsMenu placement="button-group" />
+          {/* <Button
               variant="ghost"
               size="sm"
               render={(props) => (
@@ -109,10 +108,9 @@ export function HomeContent() {
                 </Link>
               )}
             /> */}
-          </ButtonGroup>
-        </motion.div>
-      </div>
-    </>
+        </ButtonGroup>
+      </motion.div>
+    </div>
   );
 }
 

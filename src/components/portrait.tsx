@@ -1,21 +1,20 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import {
   motion,
+  useMotionTemplate,
   useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
   useSpring,
   useTransform,
-  useMotionTemplate,
-  useReducedMotion,
-  useMotionValueEvent,
 } from "framer-motion";
 import Image from "next/image";
-import { useModalOpen } from "./modal-context";
-import { useTheme } from "./theme-context";
-
+import { useEffect, useRef, useState } from "react";
 import nbaschezBg from "../../public/nbaschez-full-bg.jpg";
 import nbaschezFg from "../../public/nbaschez-full-fg.png";
+import { useModalOpen } from "./modal-context";
+import { useTheme } from "./theme-context";
 
 interface PortraitProps {
   onLoad?: () => void;
@@ -130,7 +129,7 @@ export function Portrait({ onLoad }: PortraitProps) {
     tx: number,
     ty: number,
     mx: number,
-    my: number
+    my: number,
   ) {
     ctx.clearRect(0, 0, logicalW, logicalH);
 
@@ -150,9 +149,24 @@ export function Portrait({ onLoad }: PortraitProps) {
     const maxDim = Math.min(logicalW, logicalH);
 
     const ellipseGroups = [
-      { baseRx: maxDim * 0.42, baseRy: maxDim * 0.16, countMul: 2.8, layer: guillocheLayers[0] },
-      { baseRx: maxDim * 0.62, baseRy: maxDim * 0.23, countMul: 2.4, layer: guillocheLayers[1] },
-      { baseRx: maxDim * 0.90, baseRy: maxDim * 0.33, countMul: 2.1, layer: guillocheLayers[2] },
+      {
+        baseRx: maxDim * 0.42,
+        baseRy: maxDim * 0.16,
+        countMul: 2.8,
+        layer: guillocheLayers[0],
+      },
+      {
+        baseRx: maxDim * 0.62,
+        baseRy: maxDim * 0.23,
+        countMul: 2.4,
+        layer: guillocheLayers[1],
+      },
+      {
+        baseRx: maxDim * 0.9,
+        baseRy: maxDim * 0.33,
+        countMul: 2.1,
+        layer: guillocheLayers[2],
+      },
     ];
 
     for (const group of ellipseGroups) {
@@ -172,8 +186,14 @@ export function Portrait({ onLoad }: PortraitProps) {
 
         // Tilt-reactive brightness — ellipses "catch" light when their long axis aligns with tilt
         const ellipseAngle = rot;
-        const alignment = Math.abs(Math.cos((ellipseAngle - Math.atan2(ty, tx) * 180 / Math.PI) * Math.PI / 180));
-        const bright = (0.65 + alignment * 0.7 + tiltMag * 0.5) * L.brightnessMul;
+        const alignment = Math.abs(
+          Math.cos(
+            ((ellipseAngle - (Math.atan2(ty, tx) * 180) / Math.PI) * Math.PI) /
+              180,
+          ),
+        );
+        const bright =
+          (0.65 + alignment * 0.7 + tiltMag * 0.5) * L.brightnessMul;
         const alpha = Math.min(0.9, 0.13 + bright * 0.22) * HOLO_OPACITY;
 
         const hue = (L.hueOffset + globalPhase * 0.35 + i * 2.2) % 360;
@@ -181,7 +201,7 @@ export function Portrait({ onLoad }: PortraitProps) {
 
         ctx.save();
         ctx.translate(cx, cy);
-        ctx.rotate(rot * Math.PI / 180);
+        ctx.rotate((rot * Math.PI) / 180);
 
         ctx.beginPath();
         ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
@@ -238,7 +258,15 @@ export function Portrait({ onLoad }: PortraitProps) {
           const parent = canvas.parentElement;
           if (parent) {
             const r = getPhotoRect(parent);
-            drawHolo(ctx, r.width, r.height, v, tiltRef.current.ty, mouseX.get(), mouseY.get());
+            drawHolo(
+              ctx,
+              r.width,
+              r.height,
+              v,
+              tiltRef.current.ty,
+              mouseX.get(),
+              mouseY.get(),
+            );
           }
         }
       }
@@ -255,7 +283,15 @@ export function Portrait({ onLoad }: PortraitProps) {
           const parent = canvas.parentElement;
           if (parent) {
             const r = getPhotoRect(parent);
-            drawHolo(ctx, r.width, r.height, tiltRef.current.tx, v, mouseX.get(), mouseY.get());
+            drawHolo(
+              ctx,
+              r.width,
+              r.height,
+              tiltRef.current.tx,
+              v,
+              mouseX.get(),
+              mouseY.get(),
+            );
           }
         }
       }
@@ -271,7 +307,15 @@ export function Portrait({ onLoad }: PortraitProps) {
           const parent = canvas.parentElement;
           if (parent) {
             const r = getPhotoRect(parent);
-            drawHolo(ctx, r.width, r.height, tiltRef.current.tx, tiltRef.current.ty, mouseX.get(), mouseY.get());
+            drawHolo(
+              ctx,
+              r.width,
+              r.height,
+              tiltRef.current.tx,
+              tiltRef.current.ty,
+              mouseX.get(),
+              mouseY.get(),
+            );
           }
         }
       }
@@ -343,7 +387,8 @@ export function Portrait({ onLoad }: PortraitProps) {
 
   // Updates tilt based on any client coordinates (used by global listener)
   function updateTilt(clientX: number, clientY: number) {
-    if (isModalOpen || !cardRef.current || !loaded || prefersReducedMotion) return;
+    if (isModalOpen || !cardRef.current || !loaded || prefersReducedMotion)
+      return;
 
     const rect = cardRef.current.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
@@ -385,7 +430,9 @@ export function Portrait({ onLoad }: PortraitProps) {
       updateTilt(e.clientX, e.clientY);
     };
 
-    window.addEventListener("mousemove", handleGlobalMouseMove, { passive: true });
+    window.addEventListener("mousemove", handleGlobalMouseMove, {
+      passive: true,
+    });
 
     return () => {
       window.removeEventListener("mousemove", handleGlobalMouseMove);
@@ -474,41 +521,41 @@ export function Portrait({ onLoad }: PortraitProps) {
               }}
               className="relative"
             >
-            <Image
-              src={nbaschezBg}
-              alt="Nathan Baschez"
-              width={550}
-              height={646}
-              className="w-full h-auto object-cover select-none"
-              style={{ objectPosition: '10% 50%' }}
-              priority
-              placeholder="blur"
-              onLoad={handleLoad}
-            />
+              <Image
+                src={nbaschezBg}
+                alt="Nathan Baschez"
+                width={550}
+                height={646}
+                className="w-full h-auto object-cover select-none"
+                style={{ objectPosition: "10% 50%" }}
+                priority
+                placeholder="blur"
+                onLoad={handleLoad}
+              />
 
-            {/* Topps logo only in full baseball card mode (printed/foil stamp treatment) */}
-            {isBaseball && (
-              <svg
-                viewBox="0 0 192.756 192.756"
-                className="absolute top-[12px] left-[18px] w-[36px] h-auto z-[3] pointer-events-none select-none mix-blend-multiply opacity-50"
-                aria-hidden="true"
-              >
-                <g fill="#0f172a">
-                  <path d="M27.92 117.616l9.662-24.675C41.629 82.757 53.38 81.06 56.905 81.06h59.404l5.354-13.839H47.635l5.614-14.1H37.19c-6.267 15.928-14.884 14.1-19.845 14.1H6.901l-5.484 13.84h24.937L9.512 123.883c-4.831 12.403 5.222 15.667 9.792 15.667h38.253l5.223-13.316H33.535c-7.573-.001-7.181-4.57-5.615-8.618z" />
-                  <path d="M111.238 86.89H84.212l-20.628 52.745H76.64l7.795-19.957.038.112h14.101c4.83 0 9.66-3.655 10.967-7.05l7.18-18.017c1.306-3.525 1.306-7.833-5.483-7.833zm-10.445 15.667c-2.197 5.492-5.222 4.7-5.222 4.7h-6.283l3.672-9.4h6.136c1.828-.001 3.263.783 1.697 4.7zM151.127 86.89h-27.025l-20.629 52.745h13.057l7.832-20.05.002.205h14.1c4.83 0 9.662-3.655 10.967-7.05l7.182-18.017c1.303-3.525 1.303-7.833-5.486-7.833zm-10.443 15.667c-2.197 5.492-5.223 4.7-5.223 4.7h-6.283l3.672-9.4h6.137c1.825-.001 3.263.783 1.697 4.7zM71.433 86.84H52.828c-3.395 0-9.008.914-11.489 7.312.13 0-6.397 16.581-6.397 16.581-1.566 3.524-2.48 9.008 4.047 9.008h19.78c4.831 0 9.662-3.655 10.967-7.05l7.181-18.017c1.305-3.526 1.305-7.834-5.484-7.834zm-9.857 13.709l-2.089 5.483c-.522 1.436-2.351 2.741-3.786 2.741h-4.309c-1.566 0-2.22-1.044-1.306-3.395l1.828-4.83c.914-2.089 2.35-2.742 3.656-2.742h4.309c1.697.001 2.219 1.437 1.697 2.743z" />
-                  <path d="M171.559 99.358c.521-.914 1.109-1.502 3.068-1.502h12.402l4.309-10.966h-20.105c-3.656 0-7.441 1.044-9.27 5.744l-5.484 14.1c-1.305 2.873-1.436 8.617 4.832 8.617h5.092c1.566 0 2.35 1.306 1.697 2.872l-1.895 5.026c-.783 1.566-2.023 3.068-4.504 3.068h-32.77l-5.223 13.316h39.689c3.787 0 8.748-.392 11.49-7.441l8.094-20.628c1.307-3.395.393-7.181-3.916-7.181h-6.92c-1.502 0-2.09-1.045-1.566-2.48l.98-2.545z" />
-                </g>
-              </svg>
-            )}
+              {/* Topps logo only in full baseball card mode (printed/foil stamp treatment) */}
+              {isBaseball && (
+                <svg
+                  viewBox="0 0 192.756 192.756"
+                  className="absolute top-[12px] left-[18px] w-[36px] h-auto z-[3] pointer-events-none select-none mix-blend-multiply opacity-50"
+                  aria-hidden="true"
+                >
+                  <g fill="#0f172a">
+                    <path d="M27.92 117.616l9.662-24.675C41.629 82.757 53.38 81.06 56.905 81.06h59.404l5.354-13.839H47.635l5.614-14.1H37.19c-6.267 15.928-14.884 14.1-19.845 14.1H6.901l-5.484 13.84h24.937L9.512 123.883c-4.831 12.403 5.222 15.667 9.792 15.667h38.253l5.223-13.316H33.535c-7.573-.001-7.181-4.57-5.615-8.618z" />
+                    <path d="M111.238 86.89H84.212l-20.628 52.745H76.64l7.795-19.957.038.112h14.101c4.83 0 9.66-3.655 10.967-7.05l7.18-18.017c1.306-3.525 1.306-7.833-5.483-7.833zm-10.445 15.667c-2.197 5.492-5.222 4.7-5.222 4.7h-6.283l3.672-9.4h6.136c1.828-.001 3.263.783 1.697 4.7zM151.127 86.89h-27.025l-20.629 52.745h13.057l7.832-20.05.002.205h14.1c4.83 0 9.662-3.655 10.967-7.05l7.182-18.017c1.303-3.525 1.303-7.833-5.486-7.833zm-10.443 15.667c-2.197 5.492-5.223 4.7-5.223 4.7h-6.283l3.672-9.4h6.137c1.825-.001 3.263.783 1.697 4.7zM71.433 86.84H52.828c-3.395 0-9.008.914-11.489 7.312.13 0-6.397 16.581-6.397 16.581-1.566 3.524-2.48 9.008 4.047 9.008h19.78c4.831 0 9.662-3.655 10.967-7.05l7.181-18.017c1.305-3.526 1.305-7.834-5.484-7.834zm-9.857 13.709l-2.089 5.483c-.522 1.436-2.351 2.741-3.786 2.741h-4.309c-1.566 0-2.22-1.044-1.306-3.395l1.828-4.83c.914-2.089 2.35-2.742 3.656-2.742h4.309c1.697.001 2.219 1.437 1.697 2.743z" />
+                    <path d="M171.559 99.358c.521-.914 1.109-1.502 3.068-1.502h12.402l4.309-10.966h-20.105c-3.656 0-7.441 1.044-9.27 5.744l-5.484 14.1c-1.305 2.873-1.436 8.617 4.832 8.617h5.092c1.566 0 2.35 1.306 1.697 2.872l-1.895 5.026c-.783 1.566-2.023 3.068-4.504 3.068h-32.77l-5.223 13.316h39.689c3.787 0 8.748-.392 11.49-7.441l8.094-20.628c1.307-3.395.393-7.181-3.916-7.181h-6.92c-1.502 0-2.09-1.045-1.566-2.48l.98-2.545z" />
+                  </g>
+                </svg>
+              )}
 
-            {/* Holographic guilloche field — rotated ellipse rosettes for smooth, rich moiré patterns.
+              {/* Holographic guilloche field — rotated ellipse rosettes for smooth, rich moiré patterns.
                 Canvas for crisp per-frame control over the pattern. Lives inside the photo layer
                 wrapper so it is locked to the bg image (they appear as a single printed layer). */}
-            <canvas
-              ref={holoCanvasRef}
-              className={`absolute inset-0 z-[6] pointer-events-none ${frameRadiusClass}`}
-              aria-hidden="true"
-            />
+              <canvas
+                ref={holoCanvasRef}
+                className={`absolute inset-0 z-[6] pointer-events-none ${frameRadiusClass}`}
+                aria-hidden="true"
+              />
             </motion.div>
 
             {/* Foreground subject cutout (transparent PNG).
@@ -520,8 +567,8 @@ export function Portrait({ onLoad }: PortraitProps) {
               alt=""
               className={`absolute inset-0 z-[8] pointer-events-none select-none ${frameRadiusClass}`}
               style={{
-                objectFit: 'cover',
-                objectPosition: '10% 50%',
+                objectFit: "cover",
+                objectPosition: "10% 50%",
                 scale: prefersReducedMotion || isModalOpen ? 1 : 1.06,
                 rotateX: prefersReducedMotion || isModalOpen ? 0 : fgRotateX,
                 rotateY: prefersReducedMotion || isModalOpen ? 0 : fgRotateY,

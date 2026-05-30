@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { AboutContent } from "@/components/about-content";
 import { HomeContent } from "@/components/home-content";
 import { Modal } from "@/components/modal";
-import { AboutContent } from "@/components/about-content";
 
 export default function AboutPage() {
   const router = useRouter();
@@ -17,7 +17,12 @@ export default function AboutPage() {
       </div>
 
       {/* Auto-open the About modal when directly visiting /about */}
-      <Modal title="About" onClose={() => router.push("/")} contentMaxWidth="max-w-3xl">
+      <Modal
+        title="About"
+        onClose={() => router.push("/")}
+        contentMaxWidth="max-w-2xl"
+        modalMaxWidth="max-w-[min(720px,95vw)]"
+      >
         <AboutContent />
       </Modal>
     </>

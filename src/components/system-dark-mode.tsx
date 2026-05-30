@@ -4,16 +4,29 @@ import { useEffect } from "react";
 
 export function SystemDarkMode() {
   useEffect(() => {
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-
-    const update = () => {
-      document.documentElement.classList.toggle("dark", media.matches);
+    const applyTheme = (isDark: boolean) => {
+      document.documentElement.classList.toggle("dark", isDark);
     };
 
-    update(); // set immediately on mount
-    media.addEventListener("change", update);
+    const saved = localStorage.getItem("theme") as "light" | "dark" | null;
 
-    return () => media.removeEventListener("change", update);
+    if (saved) {
+      applyTheme(saved === "dark");
+    } else {
+      const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+      const updateFromSystem = () => {
+        // Only follow system if user hasn't set a manual preference
+        if (!localStorage.getItem("theme")) {
+          applyTheme(media.matches);
+        }
+      };
+
+      updateFromSystem();
+      media.addEventListener("change", updateFromSystem);
+
+      return () => media.removeEventListener("change", updateFromSystem);
+    }
   }, []);
 
   return null;

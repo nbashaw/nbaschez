@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-context";
 import { AgentationWrapper } from "@/components/agentation-wrapper";
 import { ModalProvider } from "@/components/modal-context";
+import { ThemeProvider } from "@/components/theme-context";
 
 const inter = Inter({
   variable: "--font-sans",

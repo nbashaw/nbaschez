@@ -17,7 +17,13 @@ export default function WorkPage() {
       </div>
 
       {/* Auto-open the Work modal when directly visiting /work */}
-      <Modal title="Work" onClose={() => router.push("/")} contentMaxWidth="max-w-3xl">
+      <Modal
+        title="Work"
+        onClose={() => router.push("/")}
+        contentMaxWidth="max-w-none"
+        contentCentered={false}
+        modalMaxWidth="max-w-[min(1320px,96vw)]"
+      >
         <WorkContent />
       </Modal>
     </>

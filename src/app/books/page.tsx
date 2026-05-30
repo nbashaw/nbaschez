@@ -17,7 +17,11 @@ export default function BooksPage() {
       </div>
 
       {/* Auto-open the Books modal when directly visiting /books */}
-      <Modal title="Books" onClose={() => router.push("/")} contentMaxWidth="max-w-3xl">
+      <Modal
+        title="Books"
+        onClose={() => router.push("/")}
+        contentMaxWidth="max-w-3xl"
+      >
         <div className="max-w-3xl mx-auto">
           <p className="text-muted-foreground mb-8">
             A small selection of books that have influenced how I think and

@@ -2,11 +2,11 @@
 
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useState,
-  type ReactNode,
 } from "react";
 
 export type Theme = "light" | "dark" | "system";
@@ -86,7 +86,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
       const handleChange = () => {
         const newResolved = getSystemTheme();
-        document.documentElement.classList.toggle("dark", newResolved === "dark");
+        document.documentElement.classList.toggle(
+          "dark",
+          newResolved === "dark",
+        );
         setResolvedTheme(newResolved);
       };
 
