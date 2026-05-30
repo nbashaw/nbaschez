@@ -5,12 +5,15 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 
 import { Portrait } from "./portrait";
+import { SettingsMenu } from "./settings-menu";
 
 export function HomeContent() {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center gap-10 lg:gap-12 xl:gap-14">
+    <>
+      <SettingsMenu />
+      <div className="flex flex-col lg:flex-row lg:items-center gap-10 lg:gap-12 xl:gap-14">
       {/* Large portrait on the left */}
       <Portrait onLoad={() => setImageLoaded(true)} />
 
@@ -29,12 +32,12 @@ export function HomeContent() {
         }}
         className="flex-1 min-w-0 max-w-[38ch] lg:max-w-[42ch]"
       >
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="text-4xl font-semibold tracking-tight">
           Hi, I&rsquo;m Nathan.
         </h1>
 
-        <h2 className="text-2xl font-semibold text-muted-foreground mt-4 mb-10">
-          I design and engineer AI products.
+        <h2 className="text-3xl font-semibold text-muted-foreground mt-4 mb-10">
+          I design and engineer<span className="block">AI products.</span>
         </h2>
 
         <div className="flex items-center gap-6 text-base">
@@ -89,6 +92,7 @@ export function HomeContent() {
         </div>
       </motion.div>
     </div>
+    </>
   );
 }
 

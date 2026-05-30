@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   motion,
   useMotionValue,
@@ -11,6 +11,8 @@ import {
   useMotionValueEvent,
 } from "framer-motion";
 import Image from "next/image";
+import { useModalOpen } from "./modal-context";
+import { useTheme } from "./theme-context";
 
 import nbaschezBg from "../../public/nbaschez-full-bg.jpg";
 import nbaschezFg from "../../public/nbaschez-full-fg.png";
@@ -23,6 +25,8 @@ export function Portrait({ onLoad }: PortraitProps) {
   const [loaded, setLoaded] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+  const { isModalOpen } = useModalOpen();
+  const { baseballMode } = useTheme();
 
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -70,7 +74,6 @@ export function Portrait({ onLoad }: PortraitProps) {
   const photoRotateY = useTransform(rotateYSpring, (v) => v * 0.88);
   const photoParallaxX = useTransform(rotateYSpring, [-7, 7], [2.1, -2.1]);
   const photoParallaxY = useTransform(rotateXSpring, [-7, 7], [-1.2, 1.2]);
-  const photoScale = 1.018; // tiny bleed so light parallax translate never reveals gaps under blue frame
 
   // Overall sheen / glare on top — follows the card tilt for a specular highlight effect
   const glareX = useTransform(rotateYSpring, [-7, 7], [74, 26]);
@@ -227,7 +230,7 @@ export function Portrait({ onLoad }: PortraitProps) {
   // Canvas redraw listeners — top level hooks (framer-motion requirement)
   useMotionValueEvent(rotateXSpring, "change", (v) => {
     tiltRef.current.tx = v;
-    if (!prefersReducedMotion && canvasReadyRef.current) {
+    if (!prefersReducedMotion && !isModalOpen && canvasReadyRef.current) {
       const canvas = holoCanvasRef.current;
       if (canvas) {
         const ctx = canvas.getContext("2d");
@@ -244,7 +247,7 @@ export function Portrait({ onLoad }: PortraitProps) {
 
   useMotionValueEvent(rotateYSpring, "change", (v) => {
     tiltRef.current.ty = v;
-    if (!prefersReducedMotion && canvasReadyRef.current) {
+    if (!prefersReducedMotion && !isModalOpen && canvasReadyRef.current) {
       const canvas = holoCanvasRef.current;
       if (canvas) {
         const ctx = canvas.getContext("2d");
@@ -260,7 +263,7 @@ export function Portrait({ onLoad }: PortraitProps) {
   });
 
   useMotionValueEvent(glareOpacity, "change", () => {
-    if (!prefersReducedMotion && canvasReadyRef.current) {
+    if (!prefersReducedMotion && !isModalOpen && canvasReadyRef.current) {
       const canvas = holoCanvasRef.current;
       if (canvas) {
         const ctx = canvas.getContext("2d");
@@ -340,7 +343,7 @@ export function Portrait({ onLoad }: PortraitProps) {
 
   // Updates tilt based on any client coordinates (used by global listener)
   function updateTilt(clientX: number, clientY: number) {
-    if (!cardRef.current || !loaded || prefersReducedMotion) return;
+    if (isModalOpen || !cardRef.current || !loaded || prefersReducedMotion) return;
 
     const rect = cardRef.current.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
@@ -358,7 +361,7 @@ export function Portrait({ onLoad }: PortraitProps) {
   }
 
   function handleMouseEnter() {
-    if (!loaded || prefersReducedMotion) return;
+    if (isModalOpen || !loaded || prefersReducedMotion) return;
     setIsHovering(true);
     scale.set(1.008);
     // Strong boost on direct hover
@@ -376,7 +379,7 @@ export function Portrait({ onLoad }: PortraitProps) {
 
   // Global mouse tracking — the card follows the cursor anywhere on screen
   useEffect(() => {
-    if (!loaded || prefersReducedMotion) return;
+    if (isModalOpen || !loaded || prefersReducedMotion) return;
 
     const handleGlobalMouseMove = (e: MouseEvent) => {
       updateTilt(e.clientX, e.clientY);
@@ -387,7 +390,34 @@ export function Portrait({ onLoad }: PortraitProps) {
     return () => {
       window.removeEventListener("mousemove", handleGlobalMouseMove);
     };
-  }, [loaded, prefersReducedMotion]);
+  }, [isModalOpen, loaded, prefersReducedMotion]);
+
+  // When a modal opens, immediately relax the card to a neutral flat state.
+  // This stops all tilt/parallax motion while the modal is visible.
+  useEffect(() => {
+    if (isModalOpen) {
+      mouseX.set(0);
+      mouseY.set(0);
+      scale.set(1);
+      glareOpacity.set(0.38);
+    }
+  }, [isModalOpen]);
+
+  // Visual treatment depends on baseballMode
+  const isBaseball = baseballMode;
+  const cardStockClass = isBaseball
+    ? "relative overflow-hidden rounded-[4px] bg-white p-[24px] shadow-2xl will-change-transform"
+    : "relative overflow-hidden rounded-3xl bg-transparent p-0 shadow-none will-change-transform";
+
+  const frameBorderClass = isBaseball
+    ? "border-[12px] border-[#1E90FF]"
+    : "border-0";
+
+  const frameRadiusClass = isBaseball
+    ? "rounded-tl-[56px] rounded-br-[56px] rounded-tr-[1px] rounded-bl-[1px]"
+    : "rounded-3xl";
+
+  const photoScale = isBaseball ? 1.018 : 1;
 
   return (
     <div className="relative w-full max-w-[550px] lg:w-[clamp(350px,40vw,550px)] lg:max-w-none lg:flex-shrink-0">
@@ -406,10 +436,10 @@ export function Portrait({ onLoad }: PortraitProps) {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           style={{
-            ...(prefersReducedMotion
+            ...(prefersReducedMotion || isModalOpen
               ? {}
               : { rotateX: rotateXSpring, rotateY: rotateYSpring }),
-            scale: prefersReducedMotion ? 1 : scale,
+            scale: prefersReducedMotion || isModalOpen ? 1 : scale,
             transformStyle: "preserve-3d",
           }}
           initial={{ opacity: 0, filter: "blur(14px)" }}
@@ -419,12 +449,11 @@ export function Portrait({ onLoad }: PortraitProps) {
               : { opacity: 0, filter: "blur(14px)" }
           }
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          className="relative overflow-hidden rounded-[4px] bg-white p-[24px] shadow-2xl will-change-transform"
+          className={cardStockClass}
         >
-          {/* Blue inner frame with baseball-card corner treatment (rounded NW + SE) */}
+          {/* Inner frame: full baseball card border treatment when on, clean modern radius when off */}
           <div
-            className="relative overflow-hidden border-[12px] border-[#1E90FF]
-                       rounded-tl-[56px] rounded-br-[56px] rounded-tr-[1px] rounded-bl-[1px]"
+            className={`relative overflow-hidden ${frameBorderClass} ${frameRadiusClass}`}
           >
             {/* Photo layer (bg image + Topps logo stamp + holographic guilloche).
                 Light parallax + tiny scale bleed vs the blue frame / outer white card.
@@ -432,7 +461,7 @@ export function Portrait({ onLoad }: PortraitProps) {
                 The guilloche canvas is inside this wrapper → moves as one with the bg photo. */}
             <motion.div
               style={{
-                ...(prefersReducedMotion
+                ...(prefersReducedMotion || isModalOpen
                   ? {}
                   : {
                       rotateX: photoRotateX,
@@ -457,26 +486,27 @@ export function Portrait({ onLoad }: PortraitProps) {
               onLoad={handleLoad}
             />
 
-            {/* Topps logo overlaid directly on the photo with blend mode (like a printed/foil stamp in Photoshop/Figma) */}
-            <svg
-              viewBox="0 0 192.756 192.756"
-              className="absolute top-[12px] left-[18px] w-[36px] h-auto z-[3] pointer-events-none select-none mix-blend-multiply opacity-50"
-              aria-hidden="true"
-            >
-              <g fill="#0f172a">
-                <path d="M27.92 117.616l9.662-24.675C41.629 82.757 53.38 81.06 56.905 81.06h59.404l5.354-13.839H47.635l5.614-14.1H37.19c-6.267 15.928-14.884 14.1-19.845 14.1H6.901l-5.484 13.84h24.937L9.512 123.883c-4.831 12.403 5.222 15.667 9.792 15.667h38.253l5.223-13.316H33.535c-7.573-.001-7.181-4.57-5.615-8.618z" />
-                <path d="M111.238 86.89H84.212l-20.628 52.745H76.64l7.795-19.957.038.112h14.101c4.83 0 9.66-3.655 10.967-7.05l7.18-18.017c1.306-3.525 1.306-7.833-5.483-7.833zm-10.445 15.667c-2.197 5.492-5.222 4.7-5.222 4.7h-6.283l3.672-9.4h6.136c1.828-.001 3.263.783 1.697 4.7zM151.127 86.89h-27.025l-20.629 52.745h13.057l7.832-20.05.002.205h14.1c4.83 0 9.662-3.655 10.967-7.05l7.182-18.017c1.303-3.525 1.303-7.833-5.486-7.833zm-10.443 15.667c-2.197 5.492-5.223 4.7-5.223 4.7h-6.283l3.672-9.4h6.137c1.825-.001 3.263.783 1.697 4.7zM71.433 86.84H52.828c-3.395 0-9.008.914-11.489 7.312.13 0-6.397 16.581-6.397 16.581-1.566 3.524-2.48 9.008 4.047 9.008h19.78c4.831 0 9.662-3.655 10.967-7.05l7.181-18.017c1.305-3.526 1.305-7.834-5.484-7.834zm-9.857 13.709l-2.089 5.483c-.522 1.436-2.351 2.741-3.786 2.741h-4.309c-1.566 0-2.22-1.044-1.306-3.395l1.828-4.83c.914-2.089 2.35-2.742 3.656-2.742h4.309c1.697.001 2.219 1.437 1.697 2.743z" />
-                <path d="M171.559 99.358c.521-.914 1.109-1.502 3.068-1.502h12.402l4.309-10.966h-20.105c-3.656 0-7.441 1.044-9.27 5.744l-5.484 14.1c-1.305 2.873-1.436 8.617 4.832 8.617h5.092c1.566 0 2.35 1.306 1.697 2.872l-1.895 5.026c-.783 1.566-2.023 3.068-4.504 3.068h-32.77l-5.223 13.316h39.689c3.787 0 8.748-.392 11.49-7.441l8.094-20.628c1.307-3.395.393-7.181-3.916-7.181h-6.92c-1.502 0-2.09-1.045-1.566-2.48l.98-2.545z" />
-              </g>
-            </svg>
+            {/* Topps logo only in full baseball card mode (printed/foil stamp treatment) */}
+            {isBaseball && (
+              <svg
+                viewBox="0 0 192.756 192.756"
+                className="absolute top-[12px] left-[18px] w-[36px] h-auto z-[3] pointer-events-none select-none mix-blend-multiply opacity-50"
+                aria-hidden="true"
+              >
+                <g fill="#0f172a">
+                  <path d="M27.92 117.616l9.662-24.675C41.629 82.757 53.38 81.06 56.905 81.06h59.404l5.354-13.839H47.635l5.614-14.1H37.19c-6.267 15.928-14.884 14.1-19.845 14.1H6.901l-5.484 13.84h24.937L9.512 123.883c-4.831 12.403 5.222 15.667 9.792 15.667h38.253l5.223-13.316H33.535c-7.573-.001-7.181-4.57-5.615-8.618z" />
+                  <path d="M111.238 86.89H84.212l-20.628 52.745H76.64l7.795-19.957.038.112h14.101c4.83 0 9.66-3.655 10.967-7.05l7.18-18.017c1.306-3.525 1.306-7.833-5.483-7.833zm-10.445 15.667c-2.197 5.492-5.222 4.7-5.222 4.7h-6.283l3.672-9.4h6.136c1.828-.001 3.263.783 1.697 4.7zM151.127 86.89h-27.025l-20.629 52.745h13.057l7.832-20.05.002.205h14.1c4.83 0 9.662-3.655 10.967-7.05l7.182-18.017c1.303-3.525 1.303-7.833-5.486-7.833zm-10.443 15.667c-2.197 5.492-5.223 4.7-5.223 4.7h-6.283l3.672-9.4h6.137c1.825-.001 3.263.783 1.697 4.7zM71.433 86.84H52.828c-3.395 0-9.008.914-11.489 7.312.13 0-6.397 16.581-6.397 16.581-1.566 3.524-2.48 9.008 4.047 9.008h19.78c4.831 0 9.662-3.655 10.967-7.05l7.181-18.017c1.305-3.526 1.305-7.834-5.484-7.834zm-9.857 13.709l-2.089 5.483c-.522 1.436-2.351 2.741-3.786 2.741h-4.309c-1.566 0-2.22-1.044-1.306-3.395l1.828-4.83c.914-2.089 2.35-2.742 3.656-2.742h4.309c1.697.001 2.219 1.437 1.697 2.743z" />
+                  <path d="M171.559 99.358c.521-.914 1.109-1.502 3.068-1.502h12.402l4.309-10.966h-20.105c-3.656 0-7.441 1.044-9.27 5.744l-5.484 14.1c-1.305 2.873-1.436 8.617 4.832 8.617h5.092c1.566 0 2.35 1.306 1.697 2.872l-1.895 5.026c-.783 1.566-2.023 3.068-4.504 3.068h-32.77l-5.223 13.316h39.689c3.787 0 8.748-.392 11.49-7.441l8.094-20.628c1.307-3.395.393-7.181-3.916-7.181h-6.92c-1.502 0-2.09-1.045-1.566-2.48l.98-2.545z" />
+                </g>
+              </svg>
+            )}
 
             {/* Holographic guilloche field — rotated ellipse rosettes for smooth, rich moiré patterns.
                 Canvas for crisp per-frame control over the pattern. Lives inside the photo layer
                 wrapper so it is locked to the bg image (they appear as a single printed layer). */}
             <canvas
               ref={holoCanvasRef}
-              className="absolute inset-0 z-[6] pointer-events-none
-                         rounded-tl-[56px] rounded-br-[56px] rounded-tr-[1px] rounded-bl-[1px]"
+              className={`absolute inset-0 z-[6] pointer-events-none ${frameRadiusClass}`}
               aria-hidden="true"
             />
             </motion.div>
@@ -488,16 +518,15 @@ export function Portrait({ onLoad }: PortraitProps) {
             <motion.img
               src="/nbaschez-full-fg.png"
               alt=""
-              className="absolute inset-0 z-[8] pointer-events-none select-none
-                         rounded-tl-[56px] rounded-br-[56px] rounded-tr-[1px] rounded-bl-[1px]"
+              className={`absolute inset-0 z-[8] pointer-events-none select-none ${frameRadiusClass}`}
               style={{
                 objectFit: 'cover',
                 objectPosition: '10% 50%',
-                scale: prefersReducedMotion ? 1 : 1.06,
-                rotateX: prefersReducedMotion ? 0 : fgRotateX,
-                rotateY: prefersReducedMotion ? 0 : fgRotateY,
-                x: prefersReducedMotion ? 0 : fgParallaxX,
-                y: prefersReducedMotion ? 0 : fgParallaxY,
+                scale: prefersReducedMotion || isModalOpen ? 1 : 1.06,
+                rotateX: prefersReducedMotion || isModalOpen ? 0 : fgRotateX,
+                rotateY: prefersReducedMotion || isModalOpen ? 0 : fgRotateY,
+                x: prefersReducedMotion || isModalOpen ? 0 : fgParallaxX,
+                y: prefersReducedMotion || isModalOpen ? 0 : fgParallaxY,
               }}
               draggable={false}
             />
@@ -505,23 +534,24 @@ export function Portrait({ onLoad }: PortraitProps) {
             {/* Overall sheen / glare on top — white moving highlight that follows card tilt.
                 Sits above the triangles and foreground cutout for a nice specular foil effect. */}
             <motion.div
-              className="absolute inset-0 pointer-events-none z-10
-                         rounded-tl-[56px] rounded-br-[56px] rounded-tr-[1px] rounded-bl-[1px]"
+              className={`absolute inset-0 pointer-events-none z-10 ${frameRadiusClass}`}
               style={{
                 background: glareBackground,
-                opacity: prefersReducedMotion ? 0 : glareOpacity,
+                opacity: prefersReducedMotion || isModalOpen ? 0 : glareOpacity,
               }}
             />
           </div>
 
-          {/* NB Pennant — placed on top of the blue border, not clipped by it */}
-          <img
-            src="/nb-pennant.svg"
-            alt=""
-            className="absolute bottom-[2px] right-[4px] w-[80%] z-30 pointer-events-none select-none"
-            draggable={false}
-            aria-hidden="true"
-          />
+          {/* NB Pennant — only in full baseball card mode, placed on top of the blue border */}
+          {isBaseball && (
+            <img
+              src="/nb-pennant.svg"
+              alt=""
+              className="absolute bottom-[2px] right-[4px] w-[80%] z-30 pointer-events-none select-none"
+              draggable={false}
+              aria-hidden="true"
+            />
+          )}
         </motion.div>
       </div>
     </div>

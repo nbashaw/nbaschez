@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import { SystemDarkMode } from "@/components/system-dark-mode";
+import { ThemeProvider } from "@/components/theme-context";
 import { AgentationWrapper } from "@/components/agentation-wrapper";
+import { ModalProvider } from "@/components/modal-context";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -45,10 +46,13 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans">
-        <SystemDarkMode />
-        {children}
-        {modal}
-        {process.env.NODE_ENV === "development" && <AgentationWrapper />}
+        <ThemeProvider>
+          <ModalProvider>
+            {children}
+            {modal}
+          </ModalProvider>
+          {process.env.NODE_ENV === "development" && <AgentationWrapper />}
+        </ThemeProvider>
       </body>
     </html>
   );
