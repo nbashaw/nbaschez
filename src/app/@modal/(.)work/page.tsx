@@ -1,31 +1,31 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { HomeContent } from "@/components/home-content";
 import { Modal } from "@/components/modal";
+import { ProjectsList } from "@/components/projects-list";
 
 export default function WorkModal() {
+  const router = useRouter();
+
   return (
-    <Modal title="Work">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-semibold tracking-tight mb-4">Work</h1>
-
-        <p className="text-xl text-muted-foreground mb-8">
-          Selected projects and collaborations.
-        </p>
-
-        <div className="space-y-8 leading-relaxed">
-          <p>
-            A collection of things I’ve worked on over the years — from early
-            startups and tools to writing and product work.
-          </p>
-
-          <p className="text-muted-foreground">More coming soon.</p>
-        </div>
-
-        <div className="mt-10">
-          <Link href="/" className="hover:underline">
-            ← Back to home
-          </Link>
+    <>
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-[1080px] px-6 flex min-h-screen items-center">
+          <HomeContent />
         </div>
       </div>
-    </Modal>
+
+      <Modal title="Work" onClose={() => router.push("/")} contentMaxWidth="max-w-3xl">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-muted-foreground mb-10 text-lg">
+            Selected projects and companies I’ve built or helped build, in
+            reverse chronological order.
+          </p>
+
+          <ProjectsList />
+        </div>
+      </Modal>
+    </>
   );
 }

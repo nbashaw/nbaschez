@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { SystemDarkMode } from "@/components/system-dark-mode";
+import { AgentationWrapper } from "@/components/agentation-wrapper";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -47,6 +48,7 @@ export default function RootLayout({
         <SystemDarkMode />
         {children}
         {modal}
+        {process.env.NODE_ENV === "development" && <AgentationWrapper />}
       </body>
     </html>
   );
