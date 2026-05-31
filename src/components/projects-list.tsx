@@ -14,6 +14,7 @@ interface Project {
   role?: string;
   dateRange?: string;
   image?: string;
+  imageBackground?: "light";
   description?: string;
 }
 
@@ -116,7 +117,23 @@ const projects: Project[] = [
   {
     id: 3,
     title: "Lex",
-    subtitle: "AI-native collaborative word processor for serious writing",
+    subtitle: (
+      <>
+        I started working on Lex as a side project inside of Every in September
+        of 2022. This was a few months before ChatGPT, but I thought it would be
+        interesting to see if GPT-3 could be made useful for writers somehow.
+        <br />
+        <br />
+        The launch was incredible - 25K signups in 24 hours. But more
+        importantly I was obsessed and excited to return to building software
+        after a few years writing and editing. So we spun it out and I became
+        CEO, and raised a round from True Ventures.
+        <br />
+        <br />
+        Lex has served over 350K users and remains a canonical reference point
+        for many when they think about AI and writing.
+      </>
+    ),
     description:
       "Lex is an AI-native collaborative word processor built from the ground up for serious writers. It combines the simplicity of a modern editor with powerful AI assistance that understands structure, tone, and long-form thinking.",
     url: "https://lex.page",
@@ -134,6 +151,7 @@ const projects: Project[] = [
     role: "co-founder",
     dateRange: "2019-2022",
     image: "/every.png",
+    imageBackground: "light",
   },
   {
     id: 9,
@@ -144,6 +162,7 @@ const projects: Project[] = [
     role: "head of product",
     dateRange: "2017-2018",
     image: "/gimlet.svg",
+    imageBackground: "light",
   },
   {
     id: 5,
@@ -154,6 +173,7 @@ const projects: Project[] = [
     role: "1st employee",
     dateRange: "2018-2019",
     image: "/substack.svg",
+    imageBackground: "light",
   },
   {
     id: 6,
@@ -174,6 +194,7 @@ const projects: Project[] = [
     role: "designed and built the v1",
     dateRange: "2013",
     image: "/product-hunt.svg",
+    imageBackground: "light",
   },
   {
     id: 8,
@@ -202,9 +223,9 @@ export function ProjectsList({ className }: ProjectsListProps) {
       <div className="flex flex-col gap-y-6">
         {featured.map((project) => (
           <div key={project.id} className="block -mx-3 px-3 py-3 rounded-2xl">
-            <div className="flex flex-col sm:flex-row sm:items-start gap-8 sm:gap-10">
+            <div className="flex flex-col xl:flex-row xl:items-start gap-8 xl:gap-10">
               {/* Large image — left side, very wide */}
-              <div className="w-full sm:w-[70%] sm:max-w-none flex-shrink-0 overflow-hidden rounded-[3px] my-3">
+              <div className="w-full xl:w-[70%] xl:max-w-none flex-shrink-0 overflow-hidden rounded-[3px] my-3">
                 {project.image ? (
                   <Image
                     src={project.image}
@@ -222,7 +243,7 @@ export function ProjectsList({ className }: ProjectsListProps) {
               </div>
 
               {/* Text content — right side */}
-              <div className="flex-1 min-w-0 pt-4">
+              <div className="flex-1 min-w-0 max-w-[600px] pt-4">
                 <h3 className="font-semibold text-[22px] leading-tight tracking-[-0.01em]">
                   {project.title}
                 </h3>
@@ -287,7 +308,13 @@ export function ProjectsList({ className }: ProjectsListProps) {
             >
               <div className="flex gap-5">
                 {/* Small thumbnail */}
-                <div className="relative w-32 flex-shrink-0 overflow-hidden rounded-[4px] aspect-[4/3] bg-muted/40 dark:bg-white/5">
+                <div
+                  className={`relative w-32 flex-shrink-0 overflow-hidden rounded-[4px] aspect-[4/3] ${
+                    project.imageBackground === "light"
+                      ? "bg-muted/40 dark:bg-white dark:ring-1 dark:ring-white/10"
+                      : "bg-muted/40 dark:bg-white/5"
+                  }`}
+                >
                   {project.image ? (
                     <Image
                       src={project.image}
