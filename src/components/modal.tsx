@@ -104,23 +104,25 @@ export function Modal({
                 handleClose();
               }
             }}
-            className={`relative w-full ${modalMaxWidth || "max-w-[min(1200px,95vw)]"} max-h-[92vh] overflow-hidden rounded-xl border-2 border-white dark:border-border bg-background shadow-2xl`}
+            className={`relative w-full ${modalMaxWidth || "max-w-[min(1200px,95vw)]"} max-h-[92vh] overflow-hidden rounded-xl border-2 border-white bg-background shadow-2xl outline-none dark:border-border`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b px-10 py-3">
-              <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+            <div className="flex items-center justify-between border-b py-3 pl-3.5 pr-2">
+              <h2 className="text-base font-semibold tracking-tight">
+                {title}
+              </h2>
               <button
                 type="button"
                 onClick={handleClose}
-                className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                className="rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                 aria-label="Close modal"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Scrollable content */}
-            <div className="overflow-y-auto max-h-[calc(92vh-65px)] px-12 py-14 text-xl leading-relaxed">
+            <div className="overflow-y-auto max-h-[calc(92vh-53px)] px-12 py-14 text-xl leading-relaxed">
               <div
                 className={`${contentMaxWidth || "max-w-2xl"} ${contentCentered === false ? "" : "mx-auto"}`.trim()}
               >
