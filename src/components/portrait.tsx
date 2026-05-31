@@ -10,7 +10,7 @@ import {
   useTransform,
 } from "framer-motion";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import nbaschezBg from "../../public/nbaschez-full-bg.jpg";
 import nbaschezFg from "../../public/nbaschez-full-fg.png";
 import { useModalOpen } from "./modal-context";
@@ -19,6 +19,10 @@ import { useTheme } from "./theme-context";
 interface PortraitProps {
   onLoad?: () => void;
 }
+
+type DeviceOrientationEventConstructor = typeof DeviceOrientationEvent & {
+  requestPermission?: () => Promise<PermissionState>;
+};
 
 export function Portrait({ onLoad }: PortraitProps) {
   const [loaded, setLoaded] = useState(false);
@@ -84,6 +88,8 @@ export function Portrait({ onLoad }: PortraitProps) {
   const holoCanvasRef = useRef<HTMLCanvasElement>(null);
   const tiltRef = useRef({ tx: 0, ty: 0 });
   const canvasReadyRef = useRef(false);
+  const gyroEnabledRef = useRef(false);
+  const gyroOriginRef = useRef<{ beta: number; gamma: number } | null>(null);
 
   // Guilloche (ellipse rosette) configuration — tuned for nice coverage and smoothness
   const guillocheLayers = [
@@ -405,6 +411,62 @@ export function Portrait({ onLoad }: PortraitProps) {
     glareOpacity.set(0.38);
   }
 
+  const updateTiltFromDeviceOrientation = useCallback(
+    (beta: number | null, gamma: number | null) => {
+      if (
+        isModalOpen ||
+        !loaded ||
+        prefersReducedMotion ||
+        beta === null ||
+        gamma === null
+      ) {
+        return;
+      }
+
+      if (!gyroOriginRef.current) {
+        gyroOriginRef.current = { beta, gamma };
+      }
+
+      const betaDelta = beta - gyroOriginRef.current.beta;
+      const gammaDelta = gamma - gyroOriginRef.current.gamma;
+
+      mouseX.set(Math.max(Math.min(gammaDelta / 28, 0.5), -0.5));
+      mouseY.set(Math.max(Math.min(-betaDelta / 36, 0.5), -0.5));
+      glareOpacity.set(0.56);
+    },
+    [glareOpacity, isModalOpen, loaded, mouseX, mouseY, prefersReducedMotion],
+  );
+
+  function enableGyroTilt() {
+    if (
+      typeof window === "undefined" ||
+      gyroEnabledRef.current ||
+      !("DeviceOrientationEvent" in window)
+    ) {
+      return;
+    }
+
+    const DeviceOrientation =
+      window.DeviceOrientationEvent as DeviceOrientationEventConstructor;
+
+    const markEnabled = () => {
+      gyroEnabledRef.current = true;
+      gyroOriginRef.current = null;
+    };
+
+    if (typeof DeviceOrientation.requestPermission === "function") {
+      DeviceOrientation.requestPermission()
+        .then((permission) => {
+          if (permission === "granted") markEnabled();
+        })
+        .catch(() => {
+          // Some browsers expose the API but deny access outside secure contexts.
+        });
+    } else {
+      markEnabled();
+    }
+  }
+
   function handleMouseEnter() {
     if (isModalOpen || !loaded || prefersReducedMotion) return;
     setIsHovering(true);
@@ -438,6 +500,47 @@ export function Portrait({ onLoad }: PortraitProps) {
       window.removeEventListener("mousemove", handleGlobalMouseMove);
     };
   }, [isModalOpen, loaded, prefersReducedMotion]);
+
+  // Mobile gyro tracking — mirrors the mouse tilt path once the device allows it.
+  useEffect(() => {
+    if (
+      typeof window === "undefined" ||
+      isModalOpen ||
+      !loaded ||
+      prefersReducedMotion ||
+      !("DeviceOrientationEvent" in window)
+    ) {
+      return;
+    }
+
+    const isLikelyTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+    if (!isLikelyTouchDevice) return;
+
+    const handleOrientation = (event: DeviceOrientationEvent) => {
+      if (!gyroEnabledRef.current) return;
+      updateTiltFromDeviceOrientation(event.beta, event.gamma);
+    };
+
+    window.addEventListener("deviceorientation", handleOrientation, {
+      passive: true,
+    });
+
+    const DeviceOrientation =
+      window.DeviceOrientationEvent as DeviceOrientationEventConstructor;
+    if (typeof DeviceOrientation.requestPermission !== "function") {
+      gyroEnabledRef.current = true;
+      gyroOriginRef.current = null;
+    }
+
+    return () => {
+      window.removeEventListener("deviceorientation", handleOrientation);
+    };
+  }, [
+    isModalOpen,
+    loaded,
+    prefersReducedMotion,
+    updateTiltFromDeviceOrientation,
+  ]);
 
   // When a modal opens, immediately relax the card to a neutral flat state.
   // This stops all tilt/parallax motion while the modal is visible.
@@ -482,6 +585,7 @@ export function Portrait({ onLoad }: PortraitProps) {
           ref={cardRef}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
+          onPointerDown={enableGyroTilt}
           style={{
             ...(prefersReducedMotion || isModalOpen
               ? {}

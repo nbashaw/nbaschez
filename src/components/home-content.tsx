@@ -30,11 +30,11 @@ export function HomeContent() {
         }}
         className="flex-1 min-w-0 max-w-[38ch] lg:max-w-[42ch]"
       >
-        <h1 className="text-[2.85rem] font-semibold tracking-tight">
+        <h1 className="text-[2.7rem] font-semibold tracking-tight">
           Hi, I’m Nathan
         </h1>
 
-        <h2 className="text-3xl font-semibold text-muted-foreground/70 mt-2 mb-10">
+        <h2 className="text-[1.75rem] font-semibold text-muted-foreground/70 mt-2 mb-10">
           I’m a founder, designer, and engineer building in AI
         </h2>
 
