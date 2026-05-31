@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "www.roughdraft.md",
       },
+      {
+        protocol: "https",
+        hostname: "every.to",
+      },
     ],
   },
 };
