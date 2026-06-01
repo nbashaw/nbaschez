@@ -16,19 +16,36 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteTitle = "Nathan Baschez";
+const siteDescription =
+  "Entrepreneur and writer. Co-founder of Every and Lex. Previously at Substack, Gimlet Media, and Product Hunt.";
+const socialImage = {
+  url: "/og-image.jpg",
+  width: 1200,
+  height: 713,
+  alt: siteTitle,
+};
+
 export const metadata: Metadata = {
-  title: "Nathan Baschez",
-  description:
-    "Entrepreneur and writer. Co-founder of Every and Lex. Previously at Substack, Gimlet Media, and Product Hunt.",
+  title: siteTitle,
+  description: siteDescription,
   metadataBase: new URL("https://nbaschez.com"),
   icons: {
     icon: "/favicon.png",
   },
   openGraph: {
-    title: "Nathan Baschez",
-    description:
-      "Entrepreneur and writer. Co-founder of Every and Lex. Previously at Substack, Gimlet Media, and Product Hunt.",
-    images: [{ url: "/nbaschez.jpg" }],
+    title: siteTitle,
+    description: siteDescription,
+    url: "https://nbaschez.com",
+    siteName: siteTitle,
+    images: [socialImage],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+    images: [socialImage],
   },
 };
 
