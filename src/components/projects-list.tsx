@@ -1,6 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { ProjectVideoPlayer } from "./project-video-player";
 import { buttonVariants } from "./ui/button";
 
 const FEATURED_LINK_CLASS =
@@ -15,6 +16,10 @@ interface Project {
   role?: string;
   dateRange?: string;
   image?: string;
+  video?: {
+    poster: string;
+    src: string;
+  };
   logo?: {
     mark:
       | "dash"
@@ -88,7 +93,10 @@ const projects: Project[] = [
     year: "2026",
     role: "creator",
     dateRange: "2026",
-    image: "https://www.roughdraft.md/sneak-peek.png",
+    video: {
+      poster: "/projects/rd-vid-poster.jpg",
+      src: "https://s93mdeievfdpgij0.public.blob.vercel-storage.com/projects/rd-vid-1920-60fps.mp4",
+    },
   },
   {
     id: 2,
@@ -124,7 +132,10 @@ const projects: Project[] = [
     year: "2025",
     role: "creator",
     dateRange: "2025-2026",
-    image: "/tfl.png",
+    video: {
+      poster: "/projects/tfl-vid-poster.jpg",
+      src: "https://s93mdeievfdpgij0.public.blob.vercel-storage.com/projects/tfl-vid-1920-60fps.mp4",
+    },
     featuredLayout: "image-right",
   },
   {
@@ -257,7 +268,13 @@ function FeaturedProject({ project }: { project: Project }) {
         }`}
       >
         <div className="w-full xl:w-[70%] xl:max-w-none flex-shrink-0 my-3">
-          {project.image ? (
+          {project.video ? (
+            <ProjectVideoPlayer
+              poster={project.video.poster}
+              src={project.video.src}
+              title={project.title}
+            />
+          ) : project.image ? (
             <Image
               src={project.image}
               alt={project.title}

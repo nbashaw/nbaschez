@@ -6,6 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "videos:deploy": "bun run videos:encode && bun run videos:upload",
+    "videos:encode": "bash scripts/encode-project-videos.sh",
+    "videos:upload": "bash scripts/upload-project-videos.sh",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write ."
@@ -29,6 +32,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vercel/blob": "^2.4.0",
     "agentation": "^3.0.2",
     "tailwindcss": "^4",
     "typescript": "^5"
