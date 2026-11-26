@@ -34,7 +34,7 @@ export function HomeContent() {
           Hi, I’m Nathan
         </h1>
 
-        <h2 className="text-[1.75rem] font-semibold text-muted-foreground/70 mt-2 mb-6 sm:mb-10">
+        <h2 className="text-[1.5rem] sm:text-[1.75rem] font-semibold text-muted-foreground/70 mt-2 mb-6 sm:mb-10">
           I’m a founder, designer, and engineer building in AI
         </h2>
 
