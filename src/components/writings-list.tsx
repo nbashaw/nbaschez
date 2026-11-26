@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+import { factoriesTalk } from "@/content/factories-talk";
 
 interface Writing {
   id: number;
@@ -10,6 +12,14 @@ interface Writing {
 }
 
 const writings: Writing[] = [
+  {
+    id: 0,
+    title: factoriesTalk.title,
+    date: factoriesTalk.date,
+    description: factoriesTalk.description,
+    url: `/writing/${factoriesTalk.slug}`,
+    image: factoriesTalk.cover,
+  },
   {
     id: 1,
     title: "A New Kind of Startup Is Coming",
@@ -83,36 +93,50 @@ export function WritingsList({ className }: WritingsListProps) {
   return (
     <div className={className}>
       <div className="space-y-6">
-        {writings.map((writing) => (
-          <a
-            key={writing.id}
-            href={writing.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex flex-col gap-5 -mx-3 px-3 py-4 rounded-2xl hover:bg-muted transition-colors sm:flex-row sm:items-start"
-          >
-            <div className="relative h-32 w-full overflow-hidden rounded-md sm:h-[112px] sm:w-40 sm:flex-shrink-0">
-              <Image
-                src={writing.image}
-                alt=""
-                fill
-                className="object-cover transition-transform duration-200 group-hover:scale-[1.03]"
-                sizes="(max-width: 640px) 100vw, 160px"
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-xl leading-tight tracking-tight transition-colors">
-                {writing.title}
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {writing.date}
-              </p>
-              <p className="mt-2.5 text-[15px] leading-relaxed text-foreground/90">
-                {writing.description}
-              </p>
-            </div>
-          </a>
-        ))}
+        {writings.map((writing) => {
+          const className =
+            "group flex flex-col gap-5 -mx-3 px-3 py-4 rounded-2xl hover:bg-muted transition-colors sm:flex-row sm:items-start";
+          const content = (
+            <>
+              <div className="relative h-32 w-full overflow-hidden rounded-md sm:h-[112px] sm:w-40 sm:flex-shrink-0">
+                <Image
+                  src={writing.image}
+                  alt=""
+                  fill
+                  className="object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+                  sizes="(max-width: 640px) 100vw, 160px"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-xl leading-tight tracking-tight transition-colors">
+                  {writing.title}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {writing.date}
+                </p>
+                <p className="mt-2.5 text-[15px] leading-relaxed text-foreground/90">
+                  {writing.description}
+                </p>
+              </div>
+            </>
+          );
+
+          return writing.url.startsWith("/") ? (
+            <Link key={writing.id} href={writing.url} className={className}>
+              {content}
+            </Link>
+          ) : (
+            <a
+              key={writing.id}
+              href={writing.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={className}
+            >
+              {content}
+            </a>
+          );
+        })}
       </div>
 
       <p className="pt-10 text-sm text-muted-foreground">
