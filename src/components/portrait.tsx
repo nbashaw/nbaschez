@@ -570,7 +570,7 @@ export function Portrait({ onLoad }: PortraitProps) {
   const photoScale = isBaseball ? 1.018 : 1;
 
   return (
-    <div className="relative w-full max-w-[550px] lg:w-[clamp(350px,40vw,550px)] lg:max-w-none lg:flex-shrink-0">
+    <div className="relative w-full max-w-60 sm:max-w-[550px] lg:w-[clamp(350px,40vw,550px)] lg:max-w-none lg:flex-shrink-0">
       {/* Very subtle light source / glow emanating from behind the photo.
           Inspired by modern tasteful dark-mode hero treatments (soft radial
           ambient glow with heavy blur + low opacity, seen on premium portfolios). */}

@@ -11,7 +11,7 @@ export function HomeContent() {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center gap-10 lg:gap-12 xl:gap-14">
+    <div className="flex flex-col lg:flex-row lg:items-center gap-6 sm:gap-10 lg:gap-12 xl:gap-14">
       {/* Large portrait on the left */}
       <Portrait onLoad={() => setImageLoaded(true)} />
 
@@ -34,7 +34,7 @@ export function HomeContent() {
           Hi, I’m Nathan
         </h1>
 
-        <h2 className="text-[1.75rem] font-semibold text-muted-foreground/70 mt-2 mb-10">
+        <h2 className="text-[1.75rem] font-semibold text-muted-foreground/70 mt-2 mb-6 sm:mb-10">
           I’m a founder, designer, and engineer building in AI
         </h2>
 
