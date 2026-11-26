@@ -29,14 +29,14 @@ const socialImage = {
 export const metadata: Metadata = {
   title: siteTitle,
   description: siteDescription,
-  metadataBase: new URL("https://nathanbaschez.com"),
+  metadataBase: new URL("https://www.nathanbaschez.com"),
   icons: {
     icon: "/favicon.png",
   },
   openGraph: {
     title: siteTitle,
     description: siteDescription,
-    url: "https://nathanbaschez.com",
+    url: "https://www.nathanbaschez.com",
     siteName: siteTitle,
     images: [socialImage],
     type: "website",
