@@ -13,12 +13,30 @@ interface Writing {
 
 const writings: Writing[] = [
   {
+    id: 10,
+    title: "A new shape for work",
+    date: "November 20, 2026",
+    description:
+      "A field guide for building a shared context system that you, your team, and your agents can work in together.",
+    url: "https://www.notion.com/a-new-shape-for-work",
+    image: "/writing/cards/new-shape-for-work.jpg",
+  },
+  {
     id: 0,
     title: factoriesTalk.title,
     date: factoriesTalk.date,
     description: factoriesTalk.description,
     url: `/writing/${factoriesTalk.slug}`,
     image: factoriesTalk.cover,
+  },
+  {
+    id: 11,
+    title: "Against the Personal Agents Theory of Everything",
+    date: "October 4, 2026",
+    description:
+      "Personal agents will matter, but the future of work is more multiplayer, more automated, and more complex than any individual agent can handle. Published in The Leverage.",
+    url: "https://www.gettheleverage.com/p/against-the-personal-agents-theory",
+    image: "/writing/cards/against-personal-agents.jpg",
   },
   {
     id: 1,
